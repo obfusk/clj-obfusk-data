@@ -9,19 +9,108 @@
 
 ; --                                                              }}}1
 
-;; ...
+;; Some specs for loki.util.data.core/defdata.
 
 (ns loki.util.data.core-spec
-  (:use speclj.core)
-  (:require [loki.util.data.core :as _d]) )
+  (:use speclj.core loki.util.data.core) )
+
+; --
+
+(defn email? [x] (re-matches #".*@.*\.[a-z]+" x))
+(defn url?   [x] (re-matches #"https?://.*"   x))
+
+(defn object-id? [x]
+  (and (string? x) (= 16 (count x))
+    (every? #(re-matches #"[a-zA-Z0-9]" x)) ))
+
+(defn id-seq? [x] (and (sequential? x) (every? object-id? x)))
+(defn id-map? [m]
+  (and (map? m) (every? #(and (string? %1) (object-id? %2)) m)) )
+
+; --
+
+(defdata foo { :other-fields #"^data-" })
+
+(defdata address {}
+  (field [:street :number :postal-code :town]
+                        [string?])
+  (field :country       [string?] { :optional true })
+)
+
+(defdata person {}
+  (field [:first-name :last-name :phone-number]
+                        [string?])
+  (field :email         [string? email?])
+  (field :address       [] { :isa [address] })
+)
+
+; --
+
+(defdata collection {}                                          ; {{{1
+  (field :_id           [object-id?])
+  (field :app           [string?])
+  (field :icon          [object-id?])
+  (field :items         [id-seq?])
+  (field :title         [string?] { :optional true })
+)                                                               ; }}}1
+
+(defdata item {}                                                ; {{{1
+  (field :_id           [object-id?])
+  (field :type          [string?])
+  (field :icon          [object-id?]  { :nil true })
+  (field :data          []            { :optional true })
+  (field :title         [string?]     { :optional true })
+  (field :url           [url?]        { :optional true })
+  (field [:refs :files] [id-map?]     { :optional true })
+
+  ; (not= (contains? x :url)
+  ;       (contains? (get x :files {}) :url))
+)                                                               ; }}}1
+
+(defdata item-files {}
+  (field :url           [url?] { :optional true })
+)
+
+(defdata image-item { :isa [item] }
+  (field :icon          [nil?])
+  (field :data          [nil?] { :optional true })
+  (field :files         { :isa [item-files] })
+)
+
+; --
 
 (describe "loki.util.data.core"
 
-  (it "..."
-    true)
+  (context "foo"                                                ; {{{1
+
+    (it "valid"
+      (should (valid? foo {})) )
+
+    (it "valid"
+      (should (valid? foo { :data-bar 37 })) )
+
+    (it "invalid"
+      (should-not (valid? foo { :baz 42 })) )
+
+  )                                                             ; }}}1
+
+  (context "address"                                            ; {{{1
+
+    (it "valid"
+      (should (valid? address
+        { :street "baker street" :number "221b" :town "london"
+          :postal-code "i don't know" :country "uk" } )))
+
+    (it "invalid"
+      (should-not (valid? address
+        { :street "baker street" :number 404 } )))
+
+  )                                                             ; }}}1
 
   ; ...
 )
+
+; --
 
 (run-specs)
 
