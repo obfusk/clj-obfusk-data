@@ -1,5 +1,6 @@
 *~
 *.swp
 
+/docs/
 /pom.xml
 /target/
