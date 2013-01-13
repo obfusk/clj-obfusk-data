@@ -16,14 +16,18 @@
 
 ; --
 
+(defn blank? [x]
+  (if (or (string? x) (coll? x)) (empty? x) false) )
+
 (declare validate)
 
 (defn -error [st & msg]
   (update-in st [:errors] #(conj % (apply str msg))) )
 
+; --
+
 (defn -validate-fields
   [x st fields]
-  (println "-validate-fields" (pr-str [x st fields]))
   (reduce (fn [st' f] (f x st')) st fields) )
 
 (defn data                                                      ; {{{1
@@ -38,7 +42,6 @@
                ks  (set (keys x))
                pks (:processed st')
                eks (_s/difference ks pks) ]
-          (println (pr-str [ks pks eks]))
           (cond
             (seq (:errors st'))
               st'
@@ -55,12 +58,8 @@
 
 ; --
 
-(defn blank? [x]
-  (if (or (string? x) (coll? x)) (empty? x) false) )
-
 (defn -validate-field                                           ; {{{1
   [name predicates options x st]
-  (println "-validate-field" (pr-str [name predicates options x st]))
   (let [ field        (get x name)
          st'          (update-in st [:processed] #(conj % name))
          err          #(-error st' (or (:message options)
@@ -100,13 +99,16 @@
 
 (defn union
   "Union of data fields.  ..."
-  [f & body]
+  [k & body]
   (let [ b (into {} (map #(vector (first %) (rest %)) body)) ]
-    (fn [x st] (((f x) b) x st)) ))
+    (fn [x st]
+      (let [ fields   ((k x) b)
+             fields'  (conj fields (field k [keyword?])) ]
+        (reduce (fn [s field] (field x s)) st fields') ))))
 
 (defmacro defunion
-  [name f options & fields]
-  `(def ~name (data ~options (union ~f ~@fields))) )
+  [name key options & body]
+  `(def ~name (data ~options (union ~key ~@body))) )
 
 ; --
 

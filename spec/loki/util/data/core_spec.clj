@@ -31,10 +31,10 @@
 
 (defdata foo { :other-fields #(re-matches #"data-.*" (name %)) })
 
-(defunion tree :type
+(defunion tree :type {}
   [:empty]
   [:leaf (field :value []) ]
-  [:node (field [:left :right] [] { :isa [tree] }) ] )
+  [:node (field [:left :right] [] { :isa [#'tree] }) ] )
 
 ; --
 
@@ -122,7 +122,7 @@
           :right { :type :leaf, :value "spam!" } })))
 
     (it "invalid tree node"
-      (should (valid? tree
+      (should-not (valid? tree
         { :type :node
           :left { :type :empty }
           :right nil })))
