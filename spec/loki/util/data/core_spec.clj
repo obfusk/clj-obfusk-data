@@ -29,7 +29,7 @@
 
 ; --
 
-(defdata foo { :other-fields #(re-matches #"^data-" %) })
+(defdata foo { :other-fields #(re-matches #"data-.*" (name %)) })
 
 (defunion tree :type
   [:empty]
