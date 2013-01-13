@@ -1,7 +1,7 @@
 (defproject obfusk-data "0.0.2-SNAPSHOT"
   :description
-    (str        "[clj-]obfusk-data - "
-                "data validation combinator library for clojure" )
+  "[clj-]obfusk-data - data validation combinator library for clojure"
+
   :url          "https://github.com/obfusk/clj-obfusk-data"
 
   :licenses [ { :name "GPLv2", :distribution :repo
