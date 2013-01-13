@@ -2,17 +2,61 @@
 
     File        : README.md
     Maintainer  : Felix C. Stegerman <flx@obfusk.net>
-    Date        : 2013-01-12
+    Date        : 2013-01-13
 
     Copyright   : Copyright (C) 2013  Felix C. Stegerman
-    Version     : 0.0.1-SNAPSHOT
+    Version     : 0.0.2-SNAPSHOT
 
 []: }}}1
 
 ## Description
 []: {{{1
 
-  loki-util - ...
+  [clj-]obfusk-data - data validation combinator library for clojure
+
+  ...
+
+```clojure
+(defdata address {}
+  (field [:street :number :postal-code :town] [string?])
+  (field :country [string?] { :optional true }) )
+
+(defn email? [x] (re-matches #".*@.*\.[a-z]+" x))
+
+(defdata person {}
+  (field [:first-name :last-name :phone-number] [string?])
+  (field :email [string? email?])
+  (field :address [] { :isa [address] }) )
+
+(defunion tree :type {}
+  [ :empty ]
+  [ :leaf (field :value []) ]
+  [ :node (field [:left :right] [] { :isa [#'tree] }) ] )
+
+(valid? tree
+  { :type :node
+    :left { :type :empty }
+    :right { :type :leaf, :value "spam!" } } )
+; => true
+```
+
+[]: }}}1
+
+## Specs & Docs
+[]: {{{1
+
+    $ lein spec
+    $ lein marg
+
+[]: }}}1
+
+## TODO
+[]: {{{1
+
+  * write more specs
+  * write more docs
+  * show isa errors
+  * ...
 
 []: }}}1
 

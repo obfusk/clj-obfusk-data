@@ -1,18 +1,18 @@
 ; --                                                              {{{1
 
-;;      File        : loki/util/data/core_spec.clj
+;;      File        : obfusk/data/core_spec.clj
 ;;      Maintainer  : Felix C. Stegerman <flx@obfusk.net>
-;;      Date        : 2013-01-12
+;;      Date        : 2013-01-13
 ;;
 ;;      Copyright   : Copyright (C) 2013  Felix C. Stegerman
 ;;      Licence     : GPLv2 or EPLv1
 
 ; --                                                              }}}1
 
-;; specs for loki.util.data
+;; specs for obfusk.data
 
-(ns loki.util.data.core-spec
-  (:use speclj.core loki.util.data.core) )
+(ns obfusk.data.core-spec
+  (:use speclj.core obfusk.data.core) )
 
 ; --
 
@@ -32,61 +32,53 @@
 (defdata foo { :other-fields #(re-matches #"data-.*" (name %)) })
 
 (defunion tree :type {}
-  [:empty]
-  [:leaf (field :value []) ]
-  [:node (field [:left :right] [] { :isa [#'tree] }) ] )
+  [ :empty ]
+  [ :leaf (field :value []) ]
+  [ :node (field [:left :right] [] { :isa [#'tree] }) ] )
 
 ; --
 
 (defdata address {}
-  (field [:street :number :postal-code :town]
-                        [string?])
-  (field :country       [string?] { :optional true })
-)
+  (field [:street :number :postal-code :town] [string?])
+  (field :country [string?] { :optional true }) )
 
 (defdata person {}
-  (field [:first-name :last-name :phone-number]
-                        [string?])
-  (field :email         [string? email?])
-  (field :address       [] { :isa [address] })
-)
+  (field [:first-name :last-name :phone-number] [string?])
+  (field :email [string? email?])
+  (field :address [] { :isa [address] }) )
 
 ; --
 
-(defdata collection {}                                          ; {{{1
-  (field :_id           [object-id?])
-  (field :app           [string?])
-  (field :icon          [object-id?])
-  (field :items         [id-seq?])
-  (field :title         [string?] { :optional true })
-)                                                               ; }}}1
+(defdata collection {}
+  (field :_id   [object-id?])
+  (field :app   [string?])
+  (field :icon  [object-id?])
+  (field :items [id-seq?])
+  (field :title [string?] { :optional true }) )
 
-(defdata item {}                                                ; {{{1
+(defdata item {}
   (field :_id           [object-id?])
   (field :type          [string?])
   (field :icon          [object-id?]  { :nil true })
   (field :data          []            { :optional true })
   (field :title         [string?]     { :optional true })
   (field :url           [url?]        { :optional true })
-  (field [:refs :files] [id-map?]     { :optional true })
+  (field [:refs :files] [id-map?]     { :optional true }) )
 
   ; (not= (contains? x :url)
-  ;       (contains? (get x :files {}) :url))
-)                                                               ; }}}1
+  ;       (contains? (get x :files {}) :url))                   ; TODO
 
 (defdata item-files {}
-  (field :url           [url?] { :optional true })
-)
+  (field :url [url?] { :optional true }) )
 
 (defdata image-item { :isa [item] }
-  (field :icon          [nil?])
-  (field :data          [nil?] { :optional true })
-  (field :files         { :isa [item-files] })
-)
+  (field :icon  [nil?])
+  (field :data  [nil?] { :optional true })
+  (field :files { :isa [item-files] }) )
 
 ; --
 
-(describe "loki.util.data.core"
+(describe "obfusk.data.core"
 
   (context "foo"                                                ; {{{1
 
@@ -119,13 +111,11 @@
       (should (valid? tree
         { :type :node
           :left { :type :empty }
-          :right { :type :leaf, :value "spam!" } })))
+          :right { :type :leaf, :value "spam!" } } )))
 
     (it "invalid tree node"
       (should-not (valid? tree
-        { :type :node
-          :left { :type :empty }
-          :right nil })))
+        { :type :node, :left { :type :empty } :right nil } )))
 
   )                                                             ; }}}1
 
@@ -134,7 +124,7 @@
     (it "valid address"
       (should (valid? address
         { :street "baker street" :number "221b" :town "london"
-          :postal-code "i don't know" :country "uk" } )))
+          :postal-code "???" :country "uk" } )))
 
     (it "invalid address"
       (should-not (valid? address
@@ -142,7 +132,7 @@
 
   )                                                             ; }}}1
 
-  ; ...
+  ; ... TODO ...
 )
 
 ; --

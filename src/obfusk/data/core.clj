@@ -1,23 +1,22 @@
 ; --                                                              {{{1
 
-;;      File        : loki/util/data/core.clj
+;;      File        : obfusk/data/core.clj
 ;;      Maintainer  : Felix C. Stegerman <flx@obfusk.net>
-;;      Date        : 2013-01-12
+;;      Date        : 2013-01-13
 ;;
 ;;      Copyright   : Copyright (C) 2013  Felix C. Stegerman
 ;;      Licence     : GPLv2 or EPLv1
 
 ; --                                                              }}}1
 
-;; data validation
+;; [clj-]obfusk-data - data validation combinator library for clojure
 
-(ns loki.util.data.core
+(ns obfusk.data.core
   (require [clojure.set :as _s]) )
 
 ; --
 
-(defn blank? [x]
-  (if (or (string? x) (coll? x)) (empty? x) false) )
+(defn blank? [x] (if (or (string? x) (coll? x)) (empty? x) false))
 
 (declare validate)
 
@@ -26,25 +25,19 @@
 
 ; --
 
-(defn -validate-fields
-  [x st fields]
-  (reduce (fn [st' f] (f x st')) st fields) )
-
 (defn data                                                      ; {{{1
   "A data validator.  ..."
   [options & fields]
   (let [ { :keys [other-fields isa] } options
          st { :errors [], :processed #{} } ]
-    (fn f [x]
+    (fn [x]
       (if (and (seq isa) (some #(validate % x) isa))
         (-error st "[data] has failed isa")                     ; TODO
-        (let [ st' (-validate-fields x st fields)
+        (let [ st' (reduce (fn [st' f] (f x st')) st fields)
                ks  (set (keys x))
                pks (:processed st')
                eks (_s/difference ks pks) ]
           (cond
-            (seq (:errors st'))
-              st'
             (and (not other-fields) (seq eks))
               (-error st' "[data] has extraneous fields")
             (and (ifn? other-fields) (not (every? other-fields eks)))
@@ -60,23 +53,19 @@
 
 (defn -validate-field                                           ; {{{1
   [name predicates options x st]
-  (let [ field        (get x name)
-         st'          (update-in st [:processed] #(conj % name))
-         err          #(-error st' (or (:message options)
-                        (apply str %&) ))
+  (let [ field  (get x name)
+         st'    (update-in st [:processed] #(conj % name))
+         err    #(-error st' (or (:message options)
+                  (apply str %&) ))
                       [ optional o-nil  blank  isa o-if o-if-not]
          (map options [:optional  :nil :blank :isa  :if  :if-not]) ]
     (cond
       (or (and o-if (not (o-if x))) (and o-if-not (o-if-not x)))
         st'
       (not (contains? x name))
-        (if optional
-          st'
-          (err "[field] not found: " name) )
+        (if optional st' (err "[field] not found: " name))
       (nil? field)
-        (if (or o-nil optional)
-          st'
-          (err "[field] is nil: " name) )
+        (if (or o-nil optional) st' (err "[field] is nil: " name))
       (and (blank? field) (not (or blank optional)))
         (err "[field] is blank: " name)
       (not-every? #(% field) predicates)
@@ -113,7 +102,7 @@
 ; --
 
 (defn validate
-  "Validate; returns nil if valid, error information otherwise."
+  "Validate; returns nil if valid, errors otherwise."
   [f x] (seq (:errors (f x))) )
 
 (defn valid?
