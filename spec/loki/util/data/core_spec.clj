@@ -9,7 +9,7 @@
 
 ; --                                                              }}}1
 
-;; Some specs for loki.util.data.core/defdata.
+;; specs for loki.util.data
 
 (ns loki.util.data.core-spec
   (:use speclj.core loki.util.data.core) )
@@ -29,7 +29,14 @@
 
 ; --
 
-(defdata foo { :other-fields #"^data-" })
+(defdata foo { :other-fields #(re-matches #"^data-" %) })
+
+(defunion tree :type
+  [:empty]
+  [:leaf (field :value []) ]
+  [:node (field [:left :right] [] { :isa [tree] }) ] )
+
+; --
 
 (defdata address {}
   (field [:street :number :postal-code :town]
@@ -83,25 +90,53 @@
 
   (context "foo"                                                ; {{{1
 
-    (it "valid"
+    (it "valid empty foo"
       (should (valid? foo {})) )
 
-    (it "valid"
+    (it "valid foo"
       (should (valid? foo { :data-bar 37 })) )
 
-    (it "invalid"
+    (it "invalid foo"
       (should-not (valid? foo { :baz 42 })) )
+
+  )                                                             ; }}}1
+
+  (context "tree"                                               ; {{{1
+
+    (it "valid empty tree"
+      (should (valid? tree { :type :empty })) )
+
+    (it "invalid empty tree"
+      (should-not (valid? tree { :type :empty, :foo "hi!" })) )
+
+    (it "valid tree leaf"
+      (should (valid? tree { :type :leaf, :value 3.14 })) )
+
+    (it "invalid tree leaf"
+      (should-not (valid? tree { :type :leaf })) )
+
+    (it "valid tree node"
+      (should (valid? tree
+        { :type :node
+          :left { :type :empty }
+          :right { :type :leaf, :value "spam!" } })))
+
+    (it "invalid tree node"
+      (should (valid? tree
+        { :type :node
+          :left { :type :empty }
+          :right nil })))
 
   )                                                             ; }}}1
 
   (context "address"                                            ; {{{1
 
-    (it "valid"
+    (it "valid address"
       (should (valid? address
         { :street "baker street" :number "221b" :town "london"
           :postal-code "i don't know" :country "uk" } )))
 
-    (it "invalid"
+    (it "invalid address"
       (should-not (valid? address
         { :street "baker street" :number 404 } )))
 
