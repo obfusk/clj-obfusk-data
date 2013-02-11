@@ -2,7 +2,7 @@
 
     File        : README.md
     Maintainer  : Felix C. Stegerman <flx@obfusk.net>
-    Date        : 2013-01-13
+    Date        : 2013-02-11
 
     Copyright   : Copyright (C) 2013  Felix C. Stegerman
     Version     : 0.0.2-SNAPSHOT
@@ -45,8 +45,8 @@
 ## Specs & Docs
 []: {{{1
 
-    $ lein spec
-    $ lein marg
+    $ rake spec
+    $ rake docs
 
 []: }}}1
 
