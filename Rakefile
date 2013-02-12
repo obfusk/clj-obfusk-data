@@ -1,5 +1,10 @@
 desc 'Run specs'
 task :spec do
+  sh 'lein spec -c'
+end
+
+desc 'Run specs verbosely'
+task 'spec:verbose' do
   sh 'lein spec -c -f d'
 end
 
